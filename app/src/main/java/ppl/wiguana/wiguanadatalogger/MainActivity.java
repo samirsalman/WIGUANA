@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private UsbService usbService;
-    private TextView display;
+    private TextView dataLog;
     private TextView tvNum;
     private TextView tvNum2;
     private TextView tvBer;
@@ -149,9 +149,9 @@ public class MainActivity extends AppCompatActivity {
         sdf = new SimpleDateFormat("-ddMMyyyy-HHmmss");
 
         scroll = (ScrollView) findViewById(R.id.dataLogCnt);
-        display = (TextView) findViewById(R.id.dataLog);
-        display.setText("--");
-        display.setMovementMethod(new ScrollingMovementMethod());
+        dataLog = (TextView) findViewById(R.id.dataLog);
+        dataLog.setText("--");
+        dataLog.setMovementMethod(new ScrollingMovementMethod());
 
 
         displayGpS = (TextView) findViewById(R.id.gpsStatus);
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!editText.getText().toString().equals("")) {
                     String relevationData = editText.getText().toString();
                     if (usbService != null) { // if UsbService was correctly binded, Send relevationData
-                        display.append(relevationData);
+                        dataLog.append(relevationData);
                         usbService.write(relevationData.getBytes());
                     }
                 }
@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                     lostPackage =0;
                     lastPackageSent =-1;
 
-                    display.setText("Started\n");
+                    dataLog.setText("Started\n");
                 }
             }
         });
@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        display.append("relevationData saved in "+tmpfn);
+        dataLog.append("relevationData saved in "+tmpfn);
 
         relevationData.clear();
     }
@@ -340,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
             long mils = System.currentTimeMillis();
             CSVLine csvline=new CSVLine(mils,line,gpsLatidude,gpsLongitude ,gpsAltitude ,gpsAccuracy);
             relevationData.add(csvline);
-            display.append(""+ recevedPackage +" --- "+csvline.toString());
+            dataLog.append(""+ recevedPackage +" --- "+csvline.toString());
             tvNum.setText(""+ recevedPackage);
             tvNum2.setText(""+ lostPackage);
             //tvBer.setText(""+recevedPackage);
@@ -351,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void parseMessage(String msg ){
-        display.append("P ---\n");
+        dataLog.append("P ---\n");
 
         messageBuffer.append(msg);
         int ind = messageBuffer.indexOf("\n");
@@ -359,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
             String line = messageBuffer.substring(0, ind-1);
             messageBuffer.delete(0, ind+1);
             recvLine(line);
-            display.append(line + "---");
+            dataLog.append(line + "---");
         }
     }
 
@@ -380,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
                     String data = (String) msg.obj;
                     mActivity.get().parseMessage(data);
-                    mActivity.get().display.append(data);
+                    mActivity.get().dataLog.append(data);
                     break;
             }
         }

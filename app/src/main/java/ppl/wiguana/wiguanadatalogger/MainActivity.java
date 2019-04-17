@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
 
 
-    private enum statesModem { WAITING_FOR_RESET,RESET_RECIEVED,RF_INIZIALIZED};
+    private enum modemState { WAITING_FOR_RESET,RESET_RECIEVED,RF_INIZIALIZED};
 
-    StringBuffer sb;
+    private StringBuffer messageBuffer;
 
 
     private ArrayList<String> data;
@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
         mHandler = new MyHandler(this);
         data= new ArrayList<String>(1000);
-        sb = new StringBuffer();
+        messageBuffer = new StringBuffer();
         started=false;
         sdf = new SimpleDateFormat("-ddMMyyyy-HHmmss");
 
@@ -352,11 +352,11 @@ public class MainActivity extends AppCompatActivity {
     public void parseMessage(String msg ){
         display.append("P ---\n");
 
-        sb.append(msg);
-        int ind = sb.indexOf("\n");
+        messageBuffer.append(msg);
+        int ind = messageBuffer.indexOf("\n");
         if(ind>=0) {
-            String line = sb.substring(0, ind-1);
-            sb.delete(0, ind+1);
+            String line = messageBuffer.substring(0, ind-1);
+            messageBuffer.delete(0, ind+1);
             recvLine(line);
             display.append(line + "---");
         }

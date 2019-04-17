@@ -6,141 +6,175 @@
     android:layout_height="match_parent"
     tools:context="ppl.wiguana.wiguanadatalogger.MainActivity">
 
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <Button
+            android:id="@+id/btStop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginStart="28dp"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/roboto_light"
+            android:text="STOP"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginStart="40dp"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/roboto_light"
+            android:text="START"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btSend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:background="@color/colorPrimary"
+            android:fontFamily="@font/roboto_light"
+            android:text="SEND PROBE" />
+    </LinearLayout>
+
     <ScrollView
         android:id="@+id/dataLogCnt"
         android:layout_width="0dp"
-        android:layout_height="150dp"
-        android:layout_marginEnd="16dp"
+        android:layout_height="200dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="16dp"
         android:scrollbars="vertical"
         android:text="Data Logger"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btStart">
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
         <TextView
-            android:id="@+id/dataLog"
+            android:id="@+id/relevationLog"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TextView"
+            android:layout_height="300dp"
+            android:fontFamily="@font/roboto_light"
+            android:hint="RelevationLog"
             android:textSize="18sp" />
     </ScrollView>
 
-    <TextView
-        android:id="@+id/tvNum2"
-        android:layout_width="77dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="28dp"
-        android:text="TextView"
-        android:textAlignment="center"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@+id/tvBer"
-        app:layout_constraintTop_toTopOf="@+id/tvBer" />
-
-
-    <TextView
-        android:id="@+id/gpsStatus"
-        android:layout_width="0dp"
-        android:layout_height="30dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="GPS Data"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+        <TextView
+            android:id="@+id/receivedPackages"
+            android:layout_width="77dp"
+            android:layout_height="50dp"
+            android:fontFamily="@font/roboto_light"
+            android:hint="Received Packages"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvBer"
+            android:layout_width="77dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="28dp"
+            android:fontFamily="@font/roboto_light"
+            android:hint="Lost Packages"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/lostPackages"
+            android:layout_width="77dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="28dp"
+            android:fontFamily="@font/roboto_light"
+            android:hint="Lost Packages"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/gpsData"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/roboto_light"
+        android:hint="GPS DATA"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dataLogCnt" />
-
-    <Button
-        android:id="@+id/btStart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="16dp"
-        android:text="START"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/btStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:text="STOP"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@+id/btStart"
-        app:layout_constraintTop_toTopOf="@+id/btStart" />
+        app:layout_constraintTop_toBottomOf="@+id/deviceState" />
 
     <TextView
-        android:id="@+id/tvNum"
-        android:layout_width="77dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="20dp"
-        android:text="TextView"
-        android:textAlignment="center"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gpsStatus" />
-
-    <TextView
-        android:id="@+id/tvBer"
-        android:layout_width="77dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="28dp"
-        android:text="TextView"
-        android:textAlignment="center"
-        android:textSize="18sp"
-        app:layout_constraintStart_toEndOf="@+id/tvNum"
-        app:layout_constraintTop_toTopOf="@+id/tvNum" />
-
-    <TextView
-        android:id="@+id/stateDispaly"
+        android:id="@+id/deviceState"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:paddingBottom="10dp"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/roboto_light"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp"
         android:paddingTop="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
         android:text="state"
         android:textColor="@android:color/holo_red_dark"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvNum" />
+        app:layout_constraintTop_toBottomOf="@+id/dataLogCnt" />
 
     <ScrollView
         android:id="@+id/usbLogWrap"
         android:layout_width="0dp"
         android:layout_height="100dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="80dp"
         android:scrollbars="vertical"
         android:text="Data Logger"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gpsData"
+        app:layout_constraintVertical_bias="0.0">
 
         <TextView
             android:id="@+id/usbLog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
+            android:fontFamily="@font/roboto_light"
+            android:hint="USB Log"
             android:textSize="18sp" />
     </ScrollView>
 
-    <Button
-        android:id="@+id/btSend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:text="SEND PROBE"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btStop" />
 </android.support.constraint.ConstraintLayout>

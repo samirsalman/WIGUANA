@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private LocationManager locationManager;
 
 
+
+
     private enum modemState { WAITING_FOR_RESET,RESET_RECIEVED,RF_INIZIALIZED}; //enum che descrive lo stato del modem
 
     private StringBuffer messageBuffer; //compone il messaggio da scrivere sulla textView ID=dataLog
@@ -151,14 +153,14 @@ public class MainActivity extends AppCompatActivity {
         sdf = new SimpleDateFormat("-ddMMyyyy-HHmmss");
 
         scroll = (ScrollView) findViewById(R.id.dataLogCnt);
-        dataLog = (TextView) findViewById(R.id.dataLog);
+        dataLog = (TextView) findViewById(R.id.relevationLog);
         dataLog.setText("--");
         dataLog.setMovementMethod(new ScrollingMovementMethod());
 
 
-        displayGpS = (TextView) findViewById(R.id.gpsStatus);
-        tvNum = (TextView) findViewById(R.id.tvNum);
-        tvNum2 = (TextView) findViewById(R.id.tvNum2);
+        displayGpS = (TextView) findViewById(R.id.gpsData);
+        tvNum = (TextView) findViewById(R.id.receivedPackages);
+        tvNum2 = (TextView) findViewById(R.id.lostPackages);
         tvBer = (TextView) findViewById(R.id.tvBer);
         //editText = (EditText) findViewById(R.id.editText1);
         //Button sendButton = (Button) findViewById(R.id.buttonSend);

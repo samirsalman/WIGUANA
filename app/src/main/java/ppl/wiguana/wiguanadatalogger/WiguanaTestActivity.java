@@ -40,33 +40,33 @@ public class WiguanaTestActivity extends AppCompatActivity {
     private static final int INIT_MODEM=1;
     private static final int SEND_PACKET=2;
 
-    private Location mLastLocation = null; //Marcello è stupido
+    private Location mLastLocation = null;
     private LocationProvider mLocProvider;
     private LocationManager locationManager;
 
 
-    StringBuffer sb;
+    StringBuffer messageBuffer;
 
 
-    private ArrayList<String> data;
+    private ArrayList<CSVLine> relevationData;
 
     private double lat = 0;
     private double lon = 0;
     private double alt = 0;
     private double acc = 0;
 
-    private boolean started;
+    private boolean startAutoRelevation;
 
 
-    Button btStart;
-    Button btStop;
-    Button btSend;
+    private Button startAutoRelevationButton;
+    private Button stopAutoRelevationButton;
+    private Button sendPackageButton;
 
 
-    private int rcv_pkt;
-    private int lost_pkt;
+    private int recevedPackages;
+    private int lostPackages;
 
-    private int lastsn;
+    private int lastSentPackage;
 
     private UsbService usbService;
 
@@ -171,9 +171,9 @@ public class WiguanaTestActivity extends AppCompatActivity {
 
         mHandler = new MyHandler(this);
 
-        data= new ArrayList<String>(1000);
-        sb = new StringBuffer();
-        started=false;
+        relevationData = new ArrayList<CSVLine>();
+        messageBuffer = new StringBuffer();
+        startAutoRelevation =false;
         sdf = new SimpleDateFormat("-ddMMyyyy-HHmmss");
 
         scroll = (ScrollView) findViewById(R.id.dataLogCnt);
@@ -182,7 +182,7 @@ public class WiguanaTestActivity extends AppCompatActivity {
         display.setMovementMethod(new ScrollingMovementMethod());
 
 
-        //All data received from the usb are logged here is log is activated
+        //All relevationData received from the usb are logged here is log is activated
         logScrollWrap = (ScrollView) findViewById(R.id.usbLogWrap);
         logDisplay = (TextView) findViewById(R.id.usbLog);
         logDisplay.setText("--");
@@ -197,15 +197,15 @@ public class WiguanaTestActivity extends AppCompatActivity {
         tvBer = (TextView) findViewById(R.id.tvBer);
 
 
-        btStart = (Button) findViewById(R.id.btStart);
-        btStart.setOnClickListener(new View.OnClickListener() {
+        startAutoRelevationButton = (Button) findViewById(R.id.btStart);
+        startAutoRelevationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!started) {
-                    started=true;
-                    rcv_pkt=0;
-                    lost_pkt=0;
-                    lastsn=-1;
+                if(!startAutoRelevation) {
+                    startAutoRelevation =true;
+                    recevedPackages =0;
+                    lostPackages =0;
+                    lastSentPackage =-1;
 
                     mHandler.sendMessage(mHandler.obtainMessage(1));
 
@@ -216,21 +216,21 @@ public class WiguanaTestActivity extends AppCompatActivity {
 
             }
         });
-        btStop = (Button) findViewById(R.id.btStop);
-        btStop.setOnClickListener(new View.OnClickListener() {
+        stopAutoRelevationButton = (Button) findViewById(R.id.btStop);
+        stopAutoRelevationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(started) {
-                    started = false;
-                    if(rcv_pkt>0)saveData();
-                    lastsn = -1;
+                if(startAutoRelevation) {
+                    startAutoRelevation = false;
+                    if(recevedPackages >0)saveData();
+                    lastSentPackage = -1;
                 }
             }
         });
 
 
-        btSend = (Button) findViewById(R.id.btSend);
-        btSend.setOnClickListener(new View.OnClickListener() {
+        sendPackageButton = (Button) findViewById(R.id.btSend);
+        sendPackageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendProbePacket();
@@ -271,13 +271,13 @@ public class WiguanaTestActivity extends AppCompatActivity {
             fOut = new FileOutputStream(outFile);
             pw = new PrintWriter(fOut);
 
-            pw.println("FileName: "+tmpfn+"  Pkt:"+rcv_pkt+" Lost:"+lost_pkt);
+            pw.println("FileName: "+tmpfn+"  Pkt:"+ recevedPackages +" Lost:"+ lostPackages);
 
-            for (int i = 0; i < data.size(); i++) {
-                String string = data.get(i);
+            for (int i = 0; i < relevationData.size(); i++) {
+                CSVLine csvLine = relevationData.get(i);
 
 
-                pw.println(string);
+                pw.println(csvLine);
             }
             pw.flush();
             pw.close();
@@ -286,9 +286,9 @@ public class WiguanaTestActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        display.append("data saved in "+tmpfn);
+        display.append("relevationData saved in "+tmpfn);
 
-        data.clear();
+        relevationData.clear();
     }
 
     @SuppressLint("MissingPermission")
@@ -306,7 +306,7 @@ public class WiguanaTestActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         setFilters();  // Start listening notifications from UsbService
-        startService(UsbService.class, usbConnection, null); // Start UsbService(if it was not started before) and Bind it
+        startService(UsbService.class, usbConnection, null); // Start UsbService(if it was not startAutoRelevation before) and Bind it
 
     }
 
@@ -355,32 +355,32 @@ public class WiguanaTestActivity extends AppCompatActivity {
 
 
     public void recvLine(String line){
-        if(started){
+        if(startAutoRelevation){
             int sn,diff;
             String[] strdata = line.split(",");
 
             if(strdata.length>4){
                 sn = Integer.parseInt(strdata[3]);
-                if(lastsn==-1){
-                    lastsn=sn;
+                if(lastSentPackage ==-1){
+                    lastSentPackage =sn;
                 }else {
 
-                    diff = sn - lastsn;
+                    diff = sn - lastSentPackage;
                     if(diff>1){
-                        lost_pkt=lost_pkt+diff-1;
+                        lostPackages = lostPackages +diff-1;
                     }
-                    lastsn=sn;
+                    lastSentPackage =sn;
                 }
             }
-            rcv_pkt++;
+            recevedPackages++;
 
             long mils = System.currentTimeMillis();
-            String csvline=mils+","+line+","+lat+","+lon+","+alt+","+acc;
-            data.add(csvline);
-            display.append(""+rcv_pkt+" --- "+csvline+"\n");
-            tvNum.setText(""+rcv_pkt);
-            tvNum2.setText(""+lost_pkt);
-            //tvBer.setText(""+rcv_pkt);
+            CSVLine csvline=mils+","+line+","+lat+","+lon+","+alt+","+acc;
+            relevationData.add(csvline);
+            display.append(""+ recevedPackages +" --- "+csvline+"\n");
+            tvNum.setText(""+ recevedPackages);
+            tvNum2.setText(""+ lostPackages);
+            //tvBer.setText(""+recevedPackages);
 
         }
 
@@ -390,13 +390,13 @@ public class WiguanaTestActivity extends AppCompatActivity {
 
     public void parseMessage(String msg ){
 
-        sb.append(msg);
-        int ind = sb.indexOf("\r");
+        messageBuffer.append(msg);
+        int ind = messageBuffer.indexOf("\r");
 
         if(ind>=0) {
             // received a command
-            String line = sb.substring(0, ind);
-            sb.delete(0, ind+1);
+            String line = messageBuffer.substring(0, ind);
+            messageBuffer.delete(0, ind+1);
 
             String strippedline=line.replaceAll("\n"," -- ");
             display.append("RCV>"+strippedline+"\n");
@@ -422,7 +422,7 @@ public class WiguanaTestActivity extends AppCompatActivity {
 
                 case UsbService.MESSAGE_FROM_SERIAL_PORT: //0
                     String data = (String) msg.obj;
-                    //mActivity.get().display.append("-I-"+data);
+                    //mActivity.get().display.append("-I-"+relevationData);
                     mActivity.get().logDisplay.append(data);
                     mActivity.get().parseMessage(data);
                     break;

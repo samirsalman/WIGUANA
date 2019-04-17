@@ -36,6 +36,8 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+
+
     //Oggetti per gestire la posizione GPS
     private Location mLastLocation = null;
     private LocationProvider mLocProvider;

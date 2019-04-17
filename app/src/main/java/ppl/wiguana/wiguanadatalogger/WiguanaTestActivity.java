@@ -468,7 +468,7 @@ public class WiguanaTestActivity extends AppCompatActivity {
                 mHandler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        usbService.write("ATPPW=0\n".getBytes());
+                        usbService.write("ATPPW=-10\n".getBytes());
                     }
                 },1500);
                 mHandler.postDelayed(new Runnable() {

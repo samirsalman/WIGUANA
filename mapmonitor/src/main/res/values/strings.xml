@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MapMonitor</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoicGxvcmV0aSIsImEiOiJjam1kc3Fta3kxYzRoM3FueXZ1bjI3d2JoIn0.3dDzDVx-sshT-mIbV3L7MQ</string>
+    <string name="mapbox_access_token2">pk.eyJ1IjoiZW50aXJpZCIsImEiOiJjaml4NXR0bnUxdTM0M2tsb3dkaGsyNWhqIn0.U_-GrjceDfo1NsDXswSSEw</string>
+    <string name="mapbox_style_mapbox_streets">mapbox://styles/ploreti/cjmeie9w5knpi2sqauev15fp2</string>
+</resources>
+

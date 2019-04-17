@@ -40,7 +40,7 @@ public class WiguanaTestActivity extends AppCompatActivity {
     private static final int INIT_MODEM=1;
     private static final int SEND_PACKET=2;
 
-    private Location mLastLocation = null;
+    private Location test = null;
     private LocationProvider mLocProvider;
     private LocationManager locationManager;
 

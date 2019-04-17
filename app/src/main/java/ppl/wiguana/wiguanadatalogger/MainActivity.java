@@ -36,33 +36,35 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    //Oggetti per gestire la posizione GPS
     private Location mLastLocation = null;
     private LocationProvider mLocProvider;
     private LocationManager locationManager;
 
 
-    private enum modemState { WAITING_FOR_RESET,RESET_RECIEVED,RF_INIZIALIZED};
+    private enum modemState { WAITING_FOR_RESET,RESET_RECIEVED,RF_INIZIALIZED}; //enum che descrive lo stato del modem
 
-    private StringBuffer messageBuffer;
-
-
-    private ArrayList<String> data;
-
-    private double lat = 0;
-    private double lon = 0;
-    private double alt = 0;
-    private double acc = 0;
-
-    private boolean started;
+    private StringBuffer messageBuffer; //compone il messaggio da scrivere sulla textView ID=dataLog
 
 
-    Button btStart;
-    Button btStop;
+    private ArrayList<CSVLine> relevationData; //ArrayList che contiene i dati sulle rilevazioni effettuate(LATITUDINE,LONGITUDINE,ecc..)
 
-    private int rcv_pkt;
-    private int lost_pkt;
+    //Variabili GPS
+    private double gpsLatidude = 0;
+    private double gpsLongitude = 0;
+    private double gpsAltitude = 0;
+    private double gpsAccuracy = 0;
 
-    private int lastsn;
+    private boolean startAutoRelevation;
+
+
+    private Button startAutoRelevationButton;
+    private Button stopAutoRelevationButton;
+
+    private int recevedPackage; //count receved packages
+    private int lostPackage; //count losted packages
+
+    private int lastPackageSent;
 
 
 
@@ -91,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
     private UsbService usbService;
     private TextView display;
     private TextView tvNum;
@@ -119,11 +122,11 @@ public class MainActivity extends AppCompatActivity {
         public void onLocationChanged(Location location) {
             mLastLocation = location;
             if (mLastLocation != null) {
-                lat = mLastLocation.getLatitude();
-                lon = mLastLocation.getLongitude();
-                alt = mLastLocation.getAltitude();
-                acc = mLastLocation.getAccuracy();
-                displayGpS.setText("GPS Data Lat:"+lat+" Lon:"+lon+" Alt:"+alt+" Acc:"+acc);
+                gpsLatidude = mLastLocation.getLatitude();
+                gpsLongitude = mLastLocation.getLongitude();
+                gpsAltitude = mLastLocation.getAltitude();
+                gpsAccuracy = mLastLocation.getAccuracy();
+                displayGpS.setText("GPS Data Lat:"+ gpsLatidude +" Lon:"+ gpsLongitude +" Alt:"+ gpsAltitude +" Acc:"+ gpsAccuracy);
             }
         }
 
@@ -140,9 +143,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mHandler = new MyHandler(this);
-        data= new ArrayList<String>(1000);
+        relevationData = new ArrayList<CSVLine>();
         messageBuffer = new StringBuffer();
-        started=false;
+        startAutoRelevation =false;
         sdf = new SimpleDateFormat("-ddMMyyyy-HHmmss");
 
         scroll = (ScrollView) findViewById(R.id.dataLogCnt);
@@ -161,37 +164,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!editText.getText().toString().equals("")) {
-                    String data = editText.getText().toString();
-                    if (usbService != null) { // if UsbService was correctly binded, Send data
-                        display.append(data);
-                        usbService.write(data.getBytes());
+                    String relevationData = editText.getText().toString();
+                    if (usbService != null) { // if UsbService was correctly binded, Send relevationData
+                        display.append(relevationData);
+                        usbService.write(relevationData.getBytes());
                     }
                 }
             }
         });*/
 
-        btStart = (Button) findViewById(R.id.btStart);
-        btStart.setOnClickListener(new View.OnClickListener() {
+        startAutoRelevationButton = (Button) findViewById(R.id.btStart);
+        startAutoRelevationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!started) {
-                    started=true;
-                    rcv_pkt=0;
-                    lost_pkt=0;
-                    lastsn=-1;
+                if(!startAutoRelevation) {
+                    startAutoRelevation =true;
+                    recevedPackage =0;
+                    lostPackage =0;
+                    lastPackageSent =-1;
 
                     display.setText("Started\n");
                 }
             }
         });
-        btStop = (Button) findViewById(R.id.btStop);
-        btStop.setOnClickListener(new View.OnClickListener() {
+        stopAutoRelevationButton = (Button) findViewById(R.id.btStop);
+        stopAutoRelevationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(started) {
-                    started = false;
-                    if(rcv_pkt>0)saveData();
-                    lastsn = -1;
+                if(startAutoRelevation) {
+                    startAutoRelevation = false;
+                    if(recevedPackage >0)saveData();
+                    lastPackageSent = -1;
                 }
             }
         });
@@ -233,13 +236,11 @@ public class MainActivity extends AppCompatActivity {
             fOut = new FileOutputStream(outFile);
             pw = new PrintWriter(fOut);
 
-            pw.println("FileName: "+tmpfn+"  Pkt:"+rcv_pkt+" Lost:"+lost_pkt);
+            pw.println("FileName: "+tmpfn+"  Pkt:"+ recevedPackage +" Lost:"+ lostPackage);
 
-            for (int i = 0; i < data.size(); i++) {
-                String string = data.get(i);
-
-
-                pw.println(string);
+            for (int i = 0; i < relevationData.size(); i++) {
+                CSVLine csvLine= relevationData.get(i);
+                pw.println(csvLine.toString());
             }
             pw.flush();
             pw.close();
@@ -248,9 +249,9 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        display.append("data saved in "+tmpfn);
+        display.append("relevationData saved in "+tmpfn);
 
-        data.clear();
+        relevationData.clear();
     }
 
     @SuppressLint("MissingPermission")
@@ -268,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         setFilters();  // Start listening notifications from UsbService
-        startService(UsbService.class, usbConnection, null); // Start UsbService(if it was not started before) and Bind it
+        startService(UsbService.class, usbConnection, null); // Start UsbService(if it was not startAutoRelevation before) and Bind it
 
     }
 
@@ -317,32 +318,32 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void recvLine(String line){
-        if(started){
+        if(startAutoRelevation){
             int sn,diff;
             String[] strdata = line.split(",");
 
             if(strdata.length>4){
                 sn = Integer.parseInt(strdata[3]);
-                if(lastsn==-1){
-                    lastsn=sn;
+                if(lastPackageSent ==-1){
+                    lastPackageSent =sn;
                 }else {
 
-                    diff = sn - lastsn;
+                    diff = sn - lastPackageSent;
                     if(diff>1){
-                        lost_pkt=lost_pkt+diff-1;
+                        lostPackage = lostPackage +diff-1;
                     }
-                    lastsn=sn;
+                    lastPackageSent =sn;
                 }
             }
-            rcv_pkt++;
+            recevedPackage++;
 
             long mils = System.currentTimeMillis();
-            String csvline=mils+","+line+","+lat+","+lon+","+alt+","+acc;
-            data.add(csvline);
-            display.append(""+rcv_pkt+" --- "+csvline+"\n");
-            tvNum.setText(""+rcv_pkt);
-            tvNum2.setText(""+lost_pkt);
-            //tvBer.setText(""+rcv_pkt);
+            CSVLine csvline=new CSVLine(mils,line,gpsLatidude,gpsLongitude ,gpsAltitude ,gpsAccuracy);
+            relevationData.add(csvline);
+            display.append(""+ recevedPackage +" --- "+csvline.toString());
+            tvNum.setText(""+ recevedPackage);
+            tvNum2.setText(""+ lostPackage);
+            //tvBer.setText(""+recevedPackage);
 
         }
 

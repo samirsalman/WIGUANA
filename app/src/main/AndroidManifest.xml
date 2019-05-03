@@ -18,22 +18,26 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".Map"></activity>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
 
         <service
             android:name=".UsbService"
-            android:enabled="true"></service>
+            android:enabled="true" />
 
-        <activity android:name=".WiguanaTestActivity"
-            android:screenOrientation="portrait" android:label="WIGUANA">
+        <activity
+            android:name=".WiguanaTestActivity"
+            android:label="WIGUANA"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />

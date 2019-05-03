@@ -72,6 +72,7 @@ public class UsbService extends Service {
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg0, Intent arg1) {
+
             if (arg1.getAction().equals(ACTION_USB_PERMISSION)) {
                 boolean granted = arg1.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
                 if (granted) // User accepted our USB connection. Try to open the device as a serial port
@@ -94,7 +95,9 @@ public class UsbService extends Service {
                 Intent intent = new Intent(ACTION_USB_DISCONNECTED);
                 arg0.sendBroadcast(intent);
                 serialPortConnected = false;
-                serialPort.close();
+                if(serialPort!=null) {
+                    serialPort.close();
+                }
             }
         }
     };

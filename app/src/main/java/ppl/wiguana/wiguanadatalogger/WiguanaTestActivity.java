@@ -48,15 +48,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
 
-public class WiguanaTestActivity extends AppCompatActivity implements MainFragment.OnFragmentInteractionListener {
+public class WiguanaTestActivity extends AppCompatActivity implements MainFragment.OnFragmentInteractionListener, MapFragment.OnFragmentInteractionListener, LogFragment.OnFragmentInteractionListener {
 
 
 	BottomNavigationView bottomMenu;
 	FragmentManager fm;
 	MainFragment home;
 	LocationManager locationManager;
-	//NotificationFragment notification;
-	//DashBoardFragment dashBoard;
+	MapFragment map;
+	LogFragment log;
 	FragmentTransaction ft;
 
 
@@ -74,6 +74,27 @@ public class WiguanaTestActivity extends AppCompatActivity implements MainFragme
 					ft.replace(R.id.main_frame,home);
 					ft.addToBackStack("home");
 					ft.commit();
+					return true;
+
+				case R.id.map_menu:
+					fm = getSupportFragmentManager();
+					ft = fm.beginTransaction();
+					ft.replace(R.id.main_frame,map);
+					ft.addToBackStack("map");
+					ft.commit();
+					return true;
+
+				case R.id.measures:
+					if(home.getArguments()!=null) {
+						log.setArguments(home.getArguments());
+						System.out.println(home.getArguments());
+					}
+					fm = getSupportFragmentManager();
+					ft = fm.beginTransaction();
+					ft.replace(R.id.main_frame,log);
+					ft.addToBackStack("log");
+					ft.commit();
+					return true;
 
 			}
 			return false;
@@ -88,15 +109,16 @@ public class WiguanaTestActivity extends AppCompatActivity implements MainFragme
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_wiguana_test);
-
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		bottomMenu= findViewById(R.id.bottomNavigationView);
 		home = MainFragment.newInstance("p1","p2");
+		map= MapFragment.newInstance("p1","p2");
+		log = LogFragment.newInstance("a","b");
 		fm = getSupportFragmentManager();
-		FragmentTransaction ft = fm.beginTransaction();
-		ft.add(R.id.main_frame,home);
-		ft.commit();
+
+
 		bottomMenu.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
 
 	}
 
@@ -133,8 +155,8 @@ public class WiguanaTestActivity extends AppCompatActivity implements MainFragme
 	@Override
 	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 		//Questa funzione verifica i permessi alla conferma
-
 		switch(requestCode){
+
 			case 1:
 				//scorro la lista dei permessi che posseggo e verifico se il mio permesso si trova tra essi, in caso positivo cerco la posizione altrimenti richiedo il permesso
 				for (int i = 0; i < permissions.length; i++) {
@@ -146,6 +168,12 @@ public class WiguanaTestActivity extends AppCompatActivity implements MainFragme
 							if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 								buildAlertMessageNoGps();
 							}else {
+
+								if(ft==null) {
+									ft = fm.beginTransaction();
+									ft.add(R.id.main_frame, home);
+									ft.commit();
+								}
 								locationManager
 									.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, locationListener);
 							}

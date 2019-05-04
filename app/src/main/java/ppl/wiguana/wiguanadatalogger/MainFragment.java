@@ -89,6 +89,7 @@ public class MainFragment extends Fragment {
 	private ScrollView scroll;
 	private TextView logTextView;
 	private TextView modemStateTextView;
+	String allDataLog;
 
 
 
@@ -115,6 +116,7 @@ public class MainFragment extends Fragment {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		if (getArguments() != null) {
 
 		}
@@ -365,6 +367,9 @@ public class MainFragment extends Fragment {
 	@Override
 	public void onPause() {
 		super.onPause();
+		Bundle bundle= new Bundle();
+		bundle.putString("log",logTextView.getText().toString());
+		setArguments(bundle);
 		//usbService.unregisterReceiver(mUsbReceiver);
 		//usbService.unbindService(usbConnection);
 	}
@@ -377,6 +382,8 @@ public class MainFragment extends Fragment {
 		}catch (Exception e){
 			e.printStackTrace();
 		}
+
+
 		//wakeLock.acquire();
 
 	}
@@ -465,44 +472,44 @@ public class MainFragment extends Fragment {
 		return started;
 	}
 
-	private int stateCounter;
+	private int stateCounter=0;
 
 	private void modemFSM(String msg) {
-		if (modemState == WAIT_FOR_MODEM) {
-			// Wait for reset
-			if (msg.contains("Reset")) {
-				stateCounter = 0;
-				modemState = INITIALIZATION;
-				modemStateTextView.setText("INITIALIZATION FASE:" + stateCounter);
-				modemStateTextView.invalidate();
 
-				mHandler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						usbService.write("AT+i 02\n".getBytes());
-					}
-				}, 500);
-				mHandler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						usbService.write("ATPBM=1\n".getBytes());
-					}
-				}, 1000);
-				mHandler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						usbService.write("ATPPW=-10\n".getBytes());
-					}
-				}, 1500);
-				mHandler.postDelayed(new Runnable() {
-					@Override
-					public void run() {
-						usbService.write("ATPRO=20000000\n".getBytes());
-					}
-				}, 2000);
+		if (msg.contains("Reset")) {
+			stateCounter = 0;
+			modemState = INITIALIZATION;
+			modemStateTextView.setText("INITIALIZATION FASE:" + stateCounter);
+			modemStateTextView.invalidate();
 
-			}
+			mHandler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					usbService.write("AT+i 02\n".getBytes());
+				}
+			}, 500);
+			mHandler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					usbService.write("ATPBM=1\n".getBytes());
+				}
+			}, 1000);
+			mHandler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					usbService.write("ATPPW=-10\n".getBytes());
+				}
+			}, 1500);
+			mHandler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					usbService.write("ATPRO=20000000\n".getBytes());
+				}
+			}, 2000);
+
 		}
+
+
 
 		if (modemState == INITIALIZATION) {
 			if (msg.contains("OK")) {

@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.location.LocationComponent;
@@ -27,6 +28,10 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+
+import java.util.List;
+
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 
 
 /**
@@ -107,15 +112,23 @@ public class MapFragment extends Fragment {
 							BitmapFactory.decodeResource(
 								getActivity().getResources(), R.drawable.mapbox_marker_icon_default));
 
-						GeoJsonSource geoJsonSource = new GeoJsonSource("source-id", Feature.fromGeometry(
-							Point.fromLngLat(-87.679, 41.885)));
-						style.addSource(geoJsonSource);
+						//CREO LA LISTA DELLE FEATURE, OVVERO LE POSIZIONI GPS DEI VARI MARKER
+						Feature[] featureList ={Feature.fromGeometry(Point.fromLngLat(-50.679, 41.885)),Feature.fromGeometry(
+								Point.fromLngLat(-50.679, 80.885)),Feature.fromGeometry(
+									Point.fromLngLat(80.679, 60.885))};
 
-						SymbolLayer symbolLayer = new SymbolLayer("layer-id", "source-id");
-						symbolLayer.withProperties(
-							PropertyFactory.iconImage("marker-icon-id")
-						);
-						style.addLayer(symbolLayer);
+						//AGGIUNGO L'ICONA CHE VORRO' DARE AI MARKER SULLA MAPPA E LE DO UN ID my-marker-image
+						style.addImage("my-marker-image", BitmapFactory.decodeResource(
+							getActivity().getResources(), R.drawable.mapbox_marker_icon_default));
+						//AGGIUNGO LA SORGENTE DEI MARKER, OVVERO LA LISTA CREATA PRIMA E LE DO UN ID marker-source
+						style.addSource(new GeoJsonSource("marker-source",
+							FeatureCollection.fromFeatures(featureList)));
+						//AGGIUNGO IL MARKER VERO E PROPRIO SU MAPPA
+						style.addLayer(new SymbolLayer("marker-layer", "marker-source")
+							.withProperties(PropertyFactory.iconImage("my-marker-image"),
+								iconOffset(new Float[]{0f, -9f})));
+
+
 						LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
 // Activate with options

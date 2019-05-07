@@ -58,11 +58,22 @@ public class WiguanaTestActivity extends AppCompatActivity implements MainFragme
 	MapFragment map;
 	LogFragment log;
 	FragmentTransaction ft;
+	String dataLog;
 
+
+	public void writeData(String data){
+		dataLog=data;
+	}
+
+	public String readData(){
+		return dataLog;
+	}
 
 
 	private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
 		= new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+
 
 		@Override
 		public boolean onNavigationItemSelected(@NonNull MenuItem item) {

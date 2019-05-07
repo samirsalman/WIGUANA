@@ -4,10 +4,16 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -67,13 +73,13 @@ public class LogFragment extends Fragment {
 		// Inflate the layout for this fragment
 		View v =  inflater.inflate(R.layout.fragment_log, container, false);
 		TextView log = v.findViewById(R.id.logView);
-		if(getArguments()!=null) {
-			String logData = getArguments().getString("log");
-			if(logData!=null) {
+		log.setMovementMethod(new ScrollingMovementMethod());
+		WiguanaTestActivity wiguanaTestActivity = (WiguanaTestActivity) getActivity();
+
+			if(wiguanaTestActivity.readData()!=null) {
+				String logData = wiguanaTestActivity.readData();
 				log.setText(logData);
 			}
-		}
-
 
 		return v;
 	}

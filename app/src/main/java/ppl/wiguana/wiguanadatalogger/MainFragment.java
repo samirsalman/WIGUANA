@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -26,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +45,7 @@ import java.util.Set;
 public class MainFragment extends Fragment {
 
 	private OnFragmentInteractionListener mListener;
+	private ScrollView scrollLog;
 	private ConstraintLayout loading;
 	private static final int INIT_MODEM=1;
 	private static final int SEND_PACKET=2;
@@ -57,7 +60,7 @@ public class MainFragment extends Fragment {
 	private double gpsLon = 0;
 	private double gpsAlt = 0;
 	private double gpsAccuracy = 0;
-	private boolean started;
+	private boolean started=false;
 	private Location gwLocation = null;
 	private ImageButton startButton;
 	private ImageButton stopButton;
@@ -75,21 +78,19 @@ public class MainFragment extends Fragment {
 	private final static int RECEIVING = 5;
 	private final static int REQ_RSSI = 6;
 	private int modemState = NOT_CONNECTED;
-	FragmentManager fm;
-	MainFragment home;
-	//NotificationFragment notification;
-	//DashBoardFragment dashBoard;
-	FragmentTransaction ft;
-	private TextView display;
 	private TextView receivedPackagesTv;
 	private TextView lostPackagesTv;
-	private TextView gpsData;
-	ConstraintLayout root;
+	private TextView latitudeTv;
+	private TextView longitudeTv;
+	private TextView altitudeTv;
+	private TextView accuracyTv;
+	private ConstraintLayout root;
 	private MainFragment.MyHandler mHandler;
-	private ScrollView scroll;
 	private TextView logTextView;
 	private TextView modemStateTextView;
-	String allDataLog;
+	private int packagesCount =0;
+	private LinearLayout gpsData;
+
 
 
 
@@ -132,36 +133,50 @@ public class MainFragment extends Fragment {
 
 
 		View v = inflater.inflate(R.layout.fragment_main, container, false);
+		gpsData = v.findViewById(R.id.gpsData);
 		loading = v.findViewById(R.id.loading_background);
+		scrollLog= v.findViewById(R.id.usbLogWrap);
 		mHandler = new MainFragment.MyHandler(this);
 		allDataLogHistory = new ArrayList<String>(1000);
 		stringBuffer = new StringBuffer();
 		root = v.findViewById(R.id.root);
 		started=false;
 		sdf = new SimpleDateFormat("-ddMMyyyy-HHmmss");
-		scroll = v.findViewById(R.id.dataLogCnt);
-		display = v.findViewById(R.id.relevationLog);
-		display.setText("");
 		//All allDataLogHistory received from the usb are logged here is log is activated
 		logTextView = v.findViewById(R.id.usbLog);
 		logTextView.setText("");
 		modemStateTextView = v.findViewById(R.id.deviceState);
-		modemStateTextView.setText("START");
-		gpsData = v.findViewById(R.id.gpsData);
 		receivedPackagesTv = v.findViewById(R.id.receivedPackages);
 		lostPackagesTv = v.findViewById(R.id.tvBer);
 		startButton = v.findViewById(R.id.btStart);
 		stopButton = v.findViewById(R.id.btStop);
 		sendButton = v.findViewById(R.id.btSend);
+		latitudeTv = v.findViewById(R.id.latitude);
+		longitudeTv = v.findViewById(R.id.longitude);
+		altitudeTv = v.findViewById(R.id.altitude);
+		accuracyTv = v.findViewById(R.id.accuracy);
 		sendButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				sendProbePacket();
 			}
 		});
+		startButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startAuto(v);
+			}
+		});
+		stopButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				stopAuto(v);
+			}
+		});
 		locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
 		locationManager
 			.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, locationListener);
+
 		return v;
 	}
 
@@ -190,6 +205,34 @@ public class MainFragment extends Fragment {
 		mListener = null;
 	}
 
+	public void setModemStateTextView(int state){
+
+		switch(state){
+			case 0:
+				modemStateTextView.setText("Non connesso");
+				break;
+
+			case 1:
+				modemStateTextView.setText("Attendo il modem");
+				break;
+
+			case 2:
+				modemStateTextView.setText("Inizializzazione");
+				break;
+
+			case 3:
+				modemStateTextView.setText("MODEM IS READY");
+				break;
+
+			case 5:
+				modemStateTextView.setText("Ricevo");
+				break;
+
+			case 6:
+				modemStateTextView.setText("Ricevo RSSI");
+				break;
+		}
+	}
 	/**
 	 * This interface must be implemented by activities that contain this
 	 * fragment to allow an interaction in this fragment to be communicated
@@ -211,23 +254,38 @@ public class MainFragment extends Fragment {
 		public void onReceive(Context context, Intent intent) {
 			switch (intent.getAction()) {
 				case UsbService.ACTION_USB_PERMISSION_GRANTED: // USB PERMISSION GRANTED
-					Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
+					Snackbar snackbar = Snackbar.make(root,"USB Ready",Snackbar.LENGTH_SHORT);
+					snackbar.getView().setBackgroundColor(Color.GREEN);
+					snackbar.show();
 					break;
+
 				case UsbService.ACTION_USB_PERMISSION_NOT_GRANTED: // USB PERMISSION NOT GRANTED
-					Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show();
+					Snackbar snackbarNG = Snackbar.make(root,"USB Permission not granted",Snackbar.LENGTH_SHORT);
+					snackbarNG.getView().setBackgroundColor(Color.RED);
+					snackbarNG.show();
 					break;
+
 				case UsbService.ACTION_NO_USB: // NO USB CONNECTED
-					Toast.makeText(context, "No USB connected", Toast.LENGTH_SHORT).show();
+					Snackbar snackbarNOUSB = Snackbar.make(root,"No USB connected",Snackbar.LENGTH_SHORT);
+					snackbarNOUSB.getView().setBackgroundColor(Color.RED);
+					snackbarNOUSB.show();
 					break;
+
 				case UsbService.ACTION_USB_DISCONNECTED: // USB DISCONNECTED
-					Toast.makeText(context, "USB disconnected", Toast.LENGTH_SHORT).show();
+					Snackbar snackbarDC = Snackbar.make(root,"USB disconnected",Snackbar.LENGTH_SHORT);
+					snackbarDC.getView().setBackgroundColor(Color.RED);
+					snackbarDC.show();
 					break;
+
 				case UsbService.ACTION_USB_NOT_SUPPORTED: // USB NOT SUPPORTED
-					Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show();
+					Snackbar snackbarNS = Snackbar.make(root,"USB device not supported",Snackbar.LENGTH_SHORT);
+					snackbarNS.getView().setBackgroundColor(Color.RED);
+					snackbarNS.show();
 					break;
 			}
 		}
 	};
+
 
 
 
@@ -262,7 +320,15 @@ public class MainFragment extends Fragment {
 				gpsLon = mLastLocation.getLongitude();
 				gpsAlt = mLastLocation.getAltitude();
 				gpsAccuracy = mLastLocation.getAccuracy();
-				gpsData.setText("GPS - Lat:"+ gpsLat +" Lon:"+ gpsLon +" Alt:"+ gpsAlt +" Acc:"+ gpsAccuracy);
+				//LAT
+				latitudeTv.setText("LAT:\n" + String.valueOf(gpsLat));
+				longitudeTv.setText("LON:\n" + String.valueOf(gpsLon));
+				altitudeTv.setText("ALT:\n" + String.valueOf(gpsAlt));
+				accuracyTv.setText("ACC:\n" + String.valueOf(gpsAccuracy));
+				//LON
+				//ALT
+				//ACCURACY
+				//gpsData.setText("GPS - Lat:"+ gpsLat +" Lon:"+ gpsLon +" Alt:"+ gpsAlt +" Acc:"+ gpsAccuracy);
 			}
 		}
 
@@ -275,29 +341,42 @@ public class MainFragment extends Fragment {
 
 
 	public void startAuto(View view){
-		if (!started) {
-			if(gwLocation!=null) {
-				if(modemState==READY) {
-					started = true;
-					receivedPackages = 0;
-					lostPackages = 0;
-					lastSent = -1;
-					mHandler.sendMessage(mHandler.obtainMessage(2));
-					display.setText("Started\n");
-				}else{
-					Snackbar.make(root,"Modem not Ready", Snackbar.LENGTH_LONG).show();
+		if(modemState == WAIT_FOR_MODEM || modemState== NOT_CONNECTED){
+				Snackbar snackbar= Snackbar.make(root,"Modem not ready yet",Snackbar.LENGTH_LONG);
+				snackbar.getView().setBackgroundColor(Color.RED);
+				snackbar.show();
+		}else {
+			if (!started) {
+				if (gwLocation != null) {
+					if (modemState == READY) {
+						started = true;
+						receivedPackages = 0;
+						lostPackages = 0;
+						lastSent = -1;
+						mHandler.sendMessage(mHandler.obtainMessage(2));
+						Snackbar.make(root, "Start Autorelevation", Snackbar.LENGTH_LONG).show();
+					} else {
+						Snackbar.make(root, "Modem not Ready", Snackbar.LENGTH_LONG).show();
+					}
+				} else {
+					Snackbar.make(root, "Gps not found!", Snackbar.LENGTH_LONG).show();
 				}
-			}else{
-				Snackbar.make(root,"Gps not found!", Snackbar.LENGTH_LONG).show();
 			}
 		}
 	}
 
 	public void stopAuto(View view){
-		if(started) {
-			started = false;
-			if(allDataLogHistory.size()>0)saveData();
-			lastSent = -1;
+		if(modemState == WAIT_FOR_MODEM || modemState== NOT_CONNECTED){
+			Snackbar snackbar= Snackbar.make(root,"Modem not ready yet",Snackbar.LENGTH_LONG);
+			snackbar.getView().setBackgroundColor(Color.RED);
+			snackbar.show();
+		}else {
+			if (started) {
+				started = false;
+				if (allDataLogHistory.size() > 0) saveData();
+				lastSent = -1;
+				Snackbar.make(root, "Autorelevation is stopped", Snackbar.LENGTH_LONG).show();
+			}
 		}
 	}
 
@@ -348,7 +427,6 @@ public class MainFragment extends Fragment {
 			e.printStackTrace();
 		}
 
-		display.append("allDataLogHistory saved in "+tmpfn);
 		allDataLogHistory.clear();
 	}
 
@@ -356,20 +434,37 @@ public class MainFragment extends Fragment {
 
 
 
+	@SuppressLint("MissingPermission")
 	@Override
 	public void onResume() {
 		super.onResume();
 		setFilters();  // Start listening notifications from UsbService
-		startService(UsbService.class, usbConnection, null); // Start UsbService(if it was not started before) and Bind it
+		startService(UsbService.class, usbConnection, null);
+		if(getArguments()!=null){
+			modemState=getArguments().getInt("state");
+			setModemStateTextView(modemState);
+			mLastLocation=getArguments().getParcelable("pos");
+			if(mLastLocation!=null) {
+				gpsData.invalidate();
+			}
+			receivedPackages = (getArguments().get("received")!=null) ? getArguments().getInt("received") : 0;
+			lostPackages = (getArguments().get("losted")!=null) ? getArguments().getInt("losted") : 0;
+			receivedPackagesTv.invalidate();
+			lostPackagesTv.invalidate();
+		}
+		// Start UsbService(if it was not started before) and Bind it
 
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		Bundle bundle= new Bundle();
-		bundle.putString("log",logTextView.getText().toString());
-		setArguments(bundle);
+		Bundle b = new Bundle();
+		b.putInt("received",receivedPackages);
+		b.putInt("losted",lostPackages);
+		b.putInt("state",modemState);
+		b.putParcelable("pos",mLastLocation);
+		setArguments(b);
 		//usbService.unregisterReceiver(mUsbReceiver);
 		//usbService.unbindService(usbConnection);
 	}
@@ -446,9 +541,20 @@ public class MainFragment extends Fragment {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 
-				case UsbService.MESSAGE_FROM_SERIAL_PORT: //0
+				case UsbService.MESSAGE_FROM_SERIAL_PORT://0
 					String data = (String) msg.obj;
-					mActivity.get().logTextView.append(data);
+					WiguanaTestActivity wiguanaTestActivity = (WiguanaTestActivity) mActivity.get().getActivity();
+					if(wiguanaTestActivity.readData()!=null) {
+								String logData = wiguanaTestActivity.readData();
+								logData= logData + " " + data;
+								wiguanaTestActivity.writeData(logData);
+							}
+						else{
+							wiguanaTestActivity.writeData(data);
+
+						}
+
+
 					mActivity.get().parseMessage(data);
 					break;
 
@@ -481,7 +587,6 @@ public class MainFragment extends Fragment {
 			modemState = INITIALIZATION;
 			modemStateTextView.setText("INITIALIZATION FASE:" + stateCounter);
 			modemStateTextView.invalidate();
-
 			mHandler.postDelayed(new Runnable() {
 				@Override
 				public void run() {
@@ -506,7 +611,7 @@ public class MainFragment extends Fragment {
 					usbService.write("ATPRO=20000000\n".getBytes());
 				}
 			}, 2000);
-
+			stateCounter++;
 		}
 
 
@@ -531,6 +636,8 @@ public class MainFragment extends Fragment {
 
 				if (msg.contains("RX")) {
 					// pacchetto ricevuto chiedo RSSI
+					logTextView.append("Package " + packagesCount + " received\n");
+
 					usbService.write("ATPLR?\n".getBytes()); // leggo RSSI
 					//AGGIUNGO DATI ALL'INTERNO DI DATA (ARRAYLIST DA SALVARE POI IN SAVEDATA)
 				}
@@ -543,8 +650,13 @@ public class MainFragment extends Fragment {
 			}
 
 			if (msg.contains("Error")) {
-				Snackbar.make(root,"Package error  : " + msg,Snackbar.LENGTH_LONG).show();
+				Snackbar snackbar = Snackbar.make(root,"Package error  : " + msg,Snackbar.LENGTH_LONG);
+				snackbar.getView().setBackgroundColor(Color.RED);
+				snackbar.show();
 				modemStateTextView.setText("MODEM READY");
+				lostPackages++;
+				lostPackagesTv.setText(String.valueOf(lostPackages));
+				logTextView.append("Error package " + packagesCount + " not received\n");
 				modemStateTextView.invalidate();
 				modemState = READY;
 			}
@@ -552,7 +664,6 @@ public class MainFragment extends Fragment {
 
 	}
 
-	int packagesCount =0;
 
 	public void sendProbePacket(){
 		if(modemState==READY) {

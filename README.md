@@ -10,4 +10,5 @@ This app is used to measure, through the power of the radio signal sent and rece
 <ul>
   <li>Ing. Pierpaolo Loreti</li>
   <li>Samir Salman</li>
+  <li>Marcello Politi</li>
 </ul>
